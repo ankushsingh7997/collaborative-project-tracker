@@ -1,0 +1,41 @@
+{
+  "name": "collaborative-project-tracker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "NODE_ENV=local ID=1 node server.js",
+    "production": "pm2 start ecosystem.config.js --env production"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://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@github.com/ankushsingh7997/collaborative-project-tracker.git"
+  },
+  "author": "Ankush",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ankushsingh7997/collaborative-project-tracker/issues"
+  },
+  "homepage": "https://github.com/ankushsingh7997/collaborative-project-tracker#readme",
+  "dependencies": {
+    "axios": "^1.11.0",
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.0.1",
+    "express-validator": "^7.2.1",
+    "express-xss-sanitizer": "^2.0.0",
+    "helmet": "^8.1.0",
+    "hpp": "^0.2.3",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.18.0",
+    "mongoose": "^8.17.2",
+    "multer": "^2.0.2",
+    "pm2": "^6.0.8",
+    "socket.io": "^4.8.1",
+    "winston": "^3.17.0",
+    "winston-transport": "^4.9.0"
+  }
+}
