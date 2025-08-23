@@ -9,7 +9,7 @@ let connection;
 async function connectToDb() {
     console.log("trying ....")
     mongoose
-        .connect(DB_URL)
+        .connect(DB_URL,{serverSelectionTimeoutMS: 30000})
         .then((con) => {
             connection = con;
             logger.info("Database Connection Successful.");
