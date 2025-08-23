@@ -7,7 +7,7 @@ const DBTransport = require("./mongoTransport");
 
 
 if (!fs.existsSync("./Logs")) {
-    fs.mkdirSync("./Logs");
+    // fs.mkdirSync("./Logs");
 }
 
 const custom_format = winston.format.printf(({ level, message }) => {
