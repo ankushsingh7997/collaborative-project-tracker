@@ -55,24 +55,25 @@ app.use(hpp());
 app.use(xss());
 
 // Content Security Policy
-app.use(
-    helmet.contentSecurityPolicy({
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "trusted-scripts.com"],
-            connectSrc: [
-                "'self'", 
-                "ws:", 
-                "wss:", 
-                "http://127.0.0.1:3001", 
-                "http://localhost:3001",
-                process.env.NODE_ENV === 'production' ? process.env.SERVER_URL : ""
-            ].filter(Boolean),
-            imgSrc: ["'self'", "data:", "https:"],
-            styleSrc: ["'self'", "'unsafe-inline'"],
-        },
-    })
-);
+// app.use(
+//     helmet.contentSecurityPolicy({
+//         directives: {
+//             defaultSrc: ["'self'"],
+//             scriptSrc: ["'self'", "'unsafe-inline'", "trusted-scripts.com"],
+//             connectSrc: [
+//                 "'self'", 
+//                 "ws:", 
+//                 "wss:", 
+//                 "http://127.0.0.1:3001", 
+//                 "http://localhost:3001",
+//                 process.env.NODE_ENV === 'production' ? process.env.SERVER_URL : ""
+//             ].filter(Boolean),
+//             imgSrc: ["'self'", "data:", "https:"],
+//             styleSrc: ["'self'", "'unsafe-inline'"],
+//         },
+//     })
+// );
+
 
 // Serve uploaded files
 // app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
