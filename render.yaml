@@ -40,7 +40,7 @@ services:
         value: "ANKUSH"
       - key: DB_URL
         value: 
-          - fromSecret: DB_URL
+          - fromSecret: "DB_URL"
       - key: ENCRYPTION_SECRET_KEY
         value: "your-encryption-key"
       - key: ENCRYPTION_METHOD
