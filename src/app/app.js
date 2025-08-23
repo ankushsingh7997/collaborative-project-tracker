@@ -74,7 +74,7 @@ app.use(
 );
 
 // Serve uploaded files
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Rate limiting (uncomment for production)
 // app.use(rateLimit({
