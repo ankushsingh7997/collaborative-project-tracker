@@ -6,14 +6,9 @@ services:
     region: mumbai
     branch: master
     autoDeploy: true
-
-    buildCommand: |
-      npm install
-
+    buildCommand: npm install
     startCommand: npm start
-
     healthCheckPath: /api/v1/healthCheck
-
     envVars:
       # Service Config
       - key: SERVICE_NAME
@@ -24,7 +19,6 @@ services:
         value: "3001"
       - key: ID
         value: "1"
-
       # Redis
       - key: BROKER_REDIS_NAME
         value: project-tracker
@@ -42,23 +36,19 @@ services:
         value: "1"
       - key: BROKER_REDIS_SUB_TOPICS
         value: NONE
-
       # Monitoring & Logging
       - key: LOG_DB_URI
         fromSecret: LOG_DB_URI
       - key: LOG_DB_NAME
         value: ANKUSH
-
       # Database
       - key: DB_URL
         fromSecret: DB_URL
-
       # Encryption
       - key: ENCRYPTION_SECRET_KEY
         fromSecret: ENCRYPTION_SECRET_KEY
       - key: ENCRYPTION_METHOD
         value: AES-256-CBC
-
       # Authentication
       - key: JWT_SECRET
         fromSecret: JWT_SECRET
