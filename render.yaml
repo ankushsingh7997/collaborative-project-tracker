@@ -10,6 +10,7 @@ services:
     startCommand: npm start
     healthCheckPath: /api/v1/healthCheck
     envVars:
+      # Service Configuration
       - key: SERVICE_NAME
         value: "TESTING"
       - key: NODE_ENV
@@ -18,6 +19,8 @@ services:
         value: "3001"
       - key: ID
         value: "1"
+      
+      # Redis Configuration
       - key: BROKER_REDIS_NAME
         value: "project-tracker"
       - key: BROKER_REDIS_HOST_URL
@@ -34,17 +37,26 @@ services:
         value: "1"
       - key: BROKER_REDIS_SUB_TOPICS
         value: "NONE"
-      - key: LOG_DB_URI
-        fromSecret: LOG_DB_URI
+      
+      # Non-sensitive Configuration
       - key: LOG_DB_NAME
         value: "ANKUSH"
-      - key: DB_URL
-        fromSecret: DB_URL
-      - key: ENCRYPTION_SECRET_KEY
-        fromSecret: ENCRYPTION_SECRET_KEY
       - key: ENCRYPTION_METHOD
         value: "AES-256-CBC"
-      - key: JWT_SECRET
-        fromSecret: JWT_SECRET
       - key: JWT_EXPIRY_DAYS
         value: "7"
+      
+      # SECRETS SECTION - These require setup in Render Dashboard
+      # - key: LOG_DB_URI
+      #   fromSecret: LOG_DB_URI
+      # - key: DB_URL
+      #   fromSecret: DB_URL
+      # - key: ENCRYPTION_SECRET_KEY
+      #   fromSecret: ENCRYPTION_SECRET_KEY
+      # - key: JWT_SECRET
+      #   fromSecret: JWT_SECRET
+    secrets:
+      - LOG_DB_URI
+      - DB_URL
+      - ENCRYPTION_SECRET_KEY
+      - JWT_SECRET
