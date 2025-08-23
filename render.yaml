@@ -3,7 +3,7 @@ services:
     name: collaborative-project-tracker
     env: node
     plan: free
-    region: mumbai
+    region: singapore
     branch: master
     autoDeploy: true
     buildCommand: npm install
@@ -39,7 +39,7 @@ services:
       - key: LOG_DB_NAME
         value: ANKUSH
       - key: DB_URL
-        value: "your-database-connection-string"
+        fromSecrets: "your-database-connection-string"
       - key: ENCRYPTION_SECRET_KEY
         value: "your-encryption-key"
       - key: ENCRYPTION_METHOD
