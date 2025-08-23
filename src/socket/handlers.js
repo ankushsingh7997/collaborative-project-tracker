@@ -13,7 +13,7 @@ const socketHandlers = (io) => {
   // Socket authentication middleware
   io.use(async (socket, next) => {
     try {
-      const token = socket.handshake.Authorization.token;
+      const token = socket.handshake.auth.token;
       if (!token) {
         return next(new Error('Authentication error: No token provided'));
       }
