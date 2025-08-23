@@ -10,36 +10,36 @@ services:
     buildCommand: |
       npm install
 
-    startCommand: npm start   # Render injects env vars automatically
+    startCommand: npm start
 
-    healthCheckPath: /api/v1/healthCheck   # make sure this route exists in server.js
+    healthCheckPath: /api/v1/healthCheck
 
     envVars:
       # Service Config
       - key: SERVICE_NAME
-        value: PROJECT_TRACKER
+        value: TESTING
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 3001
+        value: "3001"
       - key: ID
-        value: 1
+        value: "1"
 
       # Redis
       - key: BROKER_REDIS_NAME
         value: project-tracker
       - key: BROKER_REDIS_HOST_URL
-        value: localhost        # Change to your Redis service URL if hosted elsewhere
+        value: localhost
       - key: BROKER_REDIS_PORT
-        value: 6379
+        value: "6379"
       - key: BROKER_REDIS_PASSWORD
-        value: NONE             # Replace with actual password if using Redis Cloud
+        value: NONE
       - key: BROKER_REDIS_PUBLISHER
-        value: 0
+        value: "0"
       - key: BROKER_REDIS_SUBSCRIBER
-        value: 0
+        value: "0"
       - key: BROKER_REDIS_CACHE
-        value: 1
+        value: "1"
       - key: BROKER_REDIS_SUB_TOPICS
         value: NONE
 
@@ -63,4 +63,4 @@ services:
       - key: JWT_SECRET
         fromSecret: JWT_SECRET
       - key: JWT_EXPIRY_DAYS
-        value: 7
+        value: "7"
