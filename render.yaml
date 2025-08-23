@@ -35,17 +35,16 @@ services:
       - key: BROKER_REDIS_SUB_TOPICS
         value: "NONE"
       - key: LOG_DB_URI
-        value: "your-log-db-connection-string"
+        fromSecret: LOG_DB_URI
       - key: LOG_DB_NAME
         value: "ANKUSH"
       - key: DB_URL
-        value: 
-          - fromSecret: "DB_URL"
+        fromSecret: DB_URL
       - key: ENCRYPTION_SECRET_KEY
-        value: "your-encryption-key"
+        fromSecret: ENCRYPTION_SECRET_KEY
       - key: ENCRYPTION_METHOD
         value: "AES-256-CBC"
       - key: JWT_SECRET
-        value: "your-jwt-secret"
+        fromSecret: JWT_SECRET
       - key: JWT_EXPIRY_DAYS
         value: "7"
