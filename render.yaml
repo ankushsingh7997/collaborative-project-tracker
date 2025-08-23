@@ -1,0 +1,66 @@
+services:
+  - type: web
+    name: collaborative-project-tracker
+    env: node
+    plan: free
+    region: mumbai
+    branch: master
+    autoDeploy: true
+
+    buildCommand: |
+      npm install
+
+    startCommand: npm start   # Render injects env vars automatically
+
+    healthCheckPath: /api/v1/healthCheck   # make sure this route exists in server.js
+
+    envVars:
+      # Service Config
+      - key: SERVICE_NAME
+        value: PROJECT_TRACKER
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: ID
+        value: 1
+
+      # Redis
+      - key: BROKER_REDIS_NAME
+        value: project-tracker
+      - key: BROKER_REDIS_HOST_URL
+        value: localhost        # Change to your Redis service URL if hosted elsewhere
+      - key: BROKER_REDIS_PORT
+        value: 6379
+      - key: BROKER_REDIS_PASSWORD
+        value: NONE             # Replace with actual password if using Redis Cloud
+      - key: BROKER_REDIS_PUBLISHER
+        value: 0
+      - key: BROKER_REDIS_SUBSCRIBER
+        value: 0
+      - key: BROKER_REDIS_CACHE
+        value: 1
+      - key: BROKER_REDIS_SUB_TOPICS
+        value: NONE
+
+      # Monitoring & Logging
+      - key: LOG_DB_URI
+        fromSecret: LOG_DB_URI
+      - key: LOG_DB_NAME
+        value: ANKUSH
+
+      # Database
+      - key: DB_URL
+        fromSecret: DB_URL
+
+      # Encryption
+      - key: ENCRYPTION_SECRET_KEY
+        fromSecret: ENCRYPTION_SECRET_KEY
+      - key: ENCRYPTION_METHOD
+        value: AES-256-CBC
+
+      # Authentication
+      - key: JWT_SECRET
+        fromSecret: JWT_SECRET
+      - key: JWT_EXPIRY_DAYS
+        value: 7
