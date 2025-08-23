@@ -1,120 +1,253 @@
-const Task = require('../models/Task');
 const Comment = require('../models/Comment');
-const catchAsync=require("../utils/catchAsync")
+const Task = require('../models/Task');
 const { validationResult } = require('express-validator');
+const catchAsync = require('../utils/catchAsync');
+// Import socket functions directly from handlers
+const { emitToProjectMembers, emitToUser } = require('../socket/handlers');
 
-const get =catchAsync(async(req,res,next)=>{
-    const { taskId } = req.params;
+// ----------------------
+// Get comments for a task
+// ----------------------
+const get = catchAsync(async (req, res) => {
+  const { taskId } = req.params;
+  
+  // Verify user has access to this task
+  const task = await Task.findById(taskId).populate('project');
+  if (!task || !task.project.members.includes(req.user._id)) {
+    return res.status(403).json({ message: 'Access denied' });
+  }
 
-    const task = await Task.findById(taskId).populate('project');
-    if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
-    }
+  const comments = await Comment.find({ task: taskId })
+    .populate('author', 'username email avatar')
+    .sort({ createdAt: 1 });
 
-    const project = task.project;
-    if (!project.members.includes(req.user._id)) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
+  res.json(comments);
+});
 
-    const comments = await Comment.find({ task: taskId })
-      .populate('author', 'username email')
-      .sort({ createdAt: 1 });
+// ----------------------
+// Create comment
+// ----------------------
+const create = catchAsync(async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
 
-    return res.json(comments);
-})
+  const { taskId } = req.params;
+  const { content } = req.body;
 
-const create=catchAsync(async(req,res,next)=>{
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+  // Verify user has access to this task
+  const task = await Task.findById(taskId).populate('project');
+  if (!task || !task.project.members.includes(req.user._id)) {
+    return res.status(403).json({ message: 'Access denied' });
+  }
 
-    const { taskId } = req.params;
-    const { content } = req.body;
+  const comment = new Comment({
+    content,
+    author: req.user._id,
+    task: taskId
+  });
 
-    // Check if user has access to the task
-    const task = await Task.findById(taskId).populate('project');
-    if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
-    }
+  await comment.save();
+  await comment.populate('author', 'username email avatar');
 
-    const project = task.project;
-    if (!project.members.includes(req.user._id)) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
+  const io = req.app.get('io');
 
-    const comment = new Comment({
-      content,
-      author: req.user._id,
-      task: taskId
+  // Emit to all project members except the comment author
+  await emitToProjectMembers(io, task.project._id, 'commentAdded', {
+    comment,
+    task: {
+      _id: task._id,
+      title: task.title
+    },
+    author: {
+      id: req.user._id,
+      username: req.user.username
+    },
+    timestamp: new Date()
+  }, req.user._id);
+
+  // If task is assigned to someone other than the comment author, notify them specifically
+  if (task.assignee && !task.assignee.equals(req.user._id)) {
+    emitToUser(io, task.assignee.toString(), 'commentOnYourTask', {
+      comment,
+      task: {
+        _id: task._id,
+        title: task.title
+      },
+      author: {
+        id: req.user._id,
+        username: req.user.username
+      },
+      timestamp: new Date()
     });
+  }
 
-    await comment.save();
-    await comment.populate('author', 'username email');
+  res.status(201).json(comment);
+});
 
-    // Emit socket event for real-time updates
-    req.app.get('io').to(`project_${project._id}`).emit('commentCreated', comment);
+// ----------------------
+// Update comment
+// ----------------------
+const update = catchAsync(async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
 
-    res.status(201).json(comment);
-})
+  const { id } = req.params;
+  const { content } = req.body;
 
-const update=catchAsync(async(req,res,next)=>{
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+  const comment = await Comment.findById(id).populate('author', 'username email avatar');
+  if (!comment) {
+    return res.status(404).json({ message: 'Comment not found' });
+  }
 
-    const comment = await Comment.findById(req.params.id).populate({
-      path: 'task',
-      populate: { path: 'project' }
-    });
+  // Only comment author can update their own comment
+  if (!comment.author._id.equals(req.user._id)) {
+    return res.status(403).json({ message: 'Access denied' });
+  }
 
-    if (!comment) {
-      return res.status(404).json({ message: 'Comment not found' });
-    }
+  // Get task and project info for notifications
+  const task = await Task.findById(comment.task).populate('project');
+  if (!task) {
+    return res.status(404).json({ message: 'Associated task not found' });
+  }
 
-    // Only author can update comment
-    if (!comment.author.equals(req.user._id)) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
+  const oldContent = comment.content;
+  comment.content = content;
+  await comment.save();
 
-    const { content } = req.body;
-    comment.content = content;
-    await comment.save();
-    await comment.populate('author', 'username email');
+  const io = req.app.get('io');
 
-    // Emit socket event for real-time updates
-    const project = comment.task.project;
-    req.app.get('io').to(`project_${project._id}`).emit('commentUpdated', comment);
+  // Emit to all project members except the comment author
+  await emitToProjectMembers(io, task.project._id, 'commentUpdated', {
+    comment,
+    task: {
+      _id: task._id,
+      title: task.title
+    },
+    updatedBy: {
+      id: req.user._id,
+      username: req.user.username
+    },
+    oldContent,
+    timestamp: new Date()
+  }, req.user._id);
 
-    res.json(comment);
-})
+  res.json(comment);
+});
 
-const remove=catchAsync(async(req,res,next)=>{
-    const comment = await Comment.findById(req.params.id).populate({
-        path: 'task',
-        populate: { path: 'project' }
-      });
+// ----------------------
+// Delete comment
+// ----------------------
+const remove = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const comment = await Comment.findById(id).populate('author', 'username email avatar');
+  if (!comment) {
+    return res.status(404).json({ message: 'Comment not found' });
+  }
+
+  // Get task and project info for notifications
+  const task = await Task.findById(comment.task).populate('project');
+  if (!task) {
+    return res.status(404).json({ message: 'Associated task not found' });
+  }
+
+  // Only comment author or project owner can delete
+  const isAuthor = comment.author._id.equals(req.user._id);
+  const isProjectOwner = task.project.owner.equals(req.user._id);
   
-      if (!comment) {
-        return res.status(404).json({ message: 'Comment not found' });
+  if (!isAuthor && !isProjectOwner) {
+    return res.status(403).json({ message: 'Access denied' });
+  }
+
+  // Store comment info before deletion
+  const commentInfo = {
+    id: comment._id,
+    content: comment.content,
+    author: {
+      id: comment.author._id,
+      username: comment.author.username
+    }
+  };
+
+  await Comment.findByIdAndDelete(id);
+
+  const io = req.app.get('io');
+
+  // Emit to all project members except the deleter
+  await emitToProjectMembers(io, task.project._id, 'commentDeleted', {
+    commentId: commentInfo.id,
+    task: {
+      _id: task._id,
+      title: task.title
+    },
+    deletedBy: {
+      id: req.user._id,
+      username: req.user.username
+    },
+    originalAuthor: commentInfo.author,
+    timestamp: new Date()
+  }, req.user._id);
+
+  res.json({ message: 'Comment deleted successfully' });
+});
+
+// ----------------------
+// Get comment statistics for a project (optional utility endpoint)
+// ----------------------
+const getProjectStats = catchAsync(async (req, res) => {
+  const { projectId } = req.params;
+
+  // Verify user has access to this project
+  const Project = require('../models/Project');
+  const project = await Project.findById(projectId);
+  if (!project || !project.members.includes(req.user._id)) {
+    return res.status(403).json({ message: 'Access denied' });
+  }
+
+  // Get all tasks for this project
+  const tasks = await Task.find({ project: projectId }).select('_id');
+  const taskIds = tasks.map(task => task._id);
+
+  // Aggregate comment statistics
+  const stats = await Comment.aggregate([
+    { $match: { task: { $in: taskIds } } },
+    {
+      $group: {
+        _id: '$author',
+        commentCount: { $sum: 1 },
+        lastCommentDate: { $max: '$createdAt' }
       }
-  
-      // Only author or project owner can delete comment
-      const project = comment.task.project;
-      const isAuthor = comment.author.equals(req.user._id);
-      const isOwner = project.owner.equals(req.user._id);
-  
-      if (!isAuthor && !isOwner) {
-        return res.status(403).json({ message: 'Access denied' });
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'author',
+        pipeline: [{ $project: { username: 1, email: 1, avatar: 1 } }]
       }
-  
-      await Comment.findByIdAndDelete(req.params.id);
-  
-      // Emit socket event for real-time updates
-      req.app.get('io').to(`project_${project._id}`).emit('commentDeleted', { commentId: comment._id });
-  
-      res.json({ message: 'Comment deleted successfully' });
-})
+    },
+    { $unwind: '$author' },
+    { $sort: { commentCount: -1 } }
+  ]);
 
-module.exports={ get, create, update, remove }
+  const totalComments = await Comment.countDocuments({ task: { $in: taskIds } });
+
+  res.json({
+    totalComments,
+    commentsByUser: stats,
+    projectId
+  });
+});
+
+module.exports = {
+  get,
+  create,
+  update,
+  remove,
+  getProjectStats
+};

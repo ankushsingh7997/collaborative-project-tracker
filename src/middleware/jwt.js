@@ -8,17 +8,17 @@ function sign_jwt(mongodb_user_id, ) {
     });
 }
 
-function sign_and_send_token(user_id,  res, status_code, message = "None") {
+function sign_and_send_token(user,  res, status_code, message = "None") {
     try {
         let cookie_options = {
             expires: new Date(Date.now() + JWT_EXPIRY_DAYS * 24 * 60 * 60 * 1000),
-            httpOnly: true,
+            httpOnly: false,
             secure: ENVIRONMENT !== "LOCAL",
         };
-        let token = sign_jwt(user_id );
+        let token = sign_jwt(user._id );
         res.cookie("jwt", token, cookie_options);
-        let response_to_send = { status: true, message };
-        if (ENVIRONMENT !== "PRODUCTION") response_to_send.jwt = token;
+        let response_to_send = { status: true, message,user };
+        if (ENVIRONMENT === "PRODUCTION") response_to_send.jwt = token;
         return res.status(status_code).json(response_to_send);
     } catch (err) {
         logger.notify("Error signing token while logging in!!");

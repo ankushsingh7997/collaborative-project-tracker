@@ -89,9 +89,9 @@ const deleteProject = catchAsync(async (req, res) => {
   if (!project.owner.equals(req.user._id)) {
     return res.status(403).json({ message: 'Only project owner can delete' });
   }
-
-  await Task.deleteMany({ project: project._id });
-  await Project.findByIdAndDelete(req.params.id);
+  await Promise.all([Task.deleteMany({ project: project._id }),Project.findByIdAndDelete(req.params.id)])
+  // await Task.deleteMany({ project: project._id });
+  // await Project.findByIdAndDelete(req.params.id);
 
   res.json({ message: 'Project deleted successfully' });
 });
@@ -119,11 +119,4 @@ const joinProject = catchAsync(async (req, res) => {
 });
 
 
-module.exports = {
-  getProjects,
-  getProject,
-  createProject,
-  updateProject,
-  deleteProject,
-  joinProject
-};
+module.exports = { getProjects, getProject, createProject, updateProject, deleteProject, joinProject };

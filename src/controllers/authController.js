@@ -30,7 +30,7 @@ const register = catchAsync(async(req,res,next)=>{
   await user.save();
 
   // Generate token
-  return sign_and_send_token(user._id, res, 201, "Signup Successfully!");
+  return sign_and_send_token(user, res, 201, "Signup Successfully!");
 })
 
 
@@ -55,7 +55,7 @@ const login = catchAsync(async(req,res,next)=>{
   }
 
   // Generate token
-  return sign_and_send_token(user.id,res,200,"Login successful")
+  return sign_and_send_token(user,res,200,"Login successful")
 })
   
   const getMe = catchAsync(async(req,res,next)=>{

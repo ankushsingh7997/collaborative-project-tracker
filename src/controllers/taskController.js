@@ -2,6 +2,8 @@ const Task = require('../models/Task');
 const Project = require('../models/Project');
 const { validationResult } = require('express-validator');
 const catchAsync = require('../utils/catchAsync');
+// Import the functions directly from handlers
+const { emitToProjectMembers, emitToUser } = require('../socket/handlers');
 
 // ----------------------
 // Get tasks for a project
@@ -61,7 +63,28 @@ const create = catchAsync(async (req, res) => {
   await task.populate('assignee', 'username email');
   await task.populate('createdBy', 'username email');
 
-  // req.app.get('io').to(`project_${projectId}`).emit('taskCreated', task);
+  // Get io instance and emit to project members (excluding creator)
+  const io = req.app.get('io');
+  await emitToProjectMembers(io, projectId, 'taskCreated', {
+    task,
+    createdBy: {
+      id: req.user._id,
+      username: req.user.username
+    },
+    timestamp: new Date()
+  }, req.user._id);
+
+  // If task is assigned to someone, notify them specifically
+  if (assignee && assignee !== req.user._id.toString()) {
+    emitToUser(io, assignee, 'taskAssignedToYou', {
+      task,
+      assignedBy: {
+        id: req.user._id,
+        username: req.user.username
+      },
+      timestamp: new Date()
+    });
+  }
 
   res.status(201).json(task);
 });
@@ -95,6 +118,11 @@ const update = catchAsync(async (req, res) => {
     return res.status(400).json({ message: 'Assignee must be a project member' });
   }
 
+  // Store old values for comparison
+  const oldStatus = task.status;
+  const oldAssignee = task.assignee;
+
+  // Update task fields
   if (title !== undefined) task.title = title;
   if (description !== undefined) task.description = description;
   if (status !== undefined) task.status = status;
@@ -105,7 +133,64 @@ const update = catchAsync(async (req, res) => {
   await task.populate('assignee', 'username email');
   await task.populate('createdBy', 'username email');
 
-  // req.app.get('io').to(`project_${project._id}`).emit('taskUpdated', task);
+  const io = req.app.get('io');
+
+  // Emit general task update to all project members except the updater
+  await emitToProjectMembers(io, project._id, 'taskUpdated', {
+    task,
+    updatedBy: {
+      id: req.user._id,
+      username: req.user.username
+    },
+    changes: {
+      status: status !== undefined ? { old: oldStatus, new: status } : undefined,
+      assignee: assignee !== undefined ? { old: oldAssignee, new: assignee } : undefined,
+    },
+    timestamp: new Date()
+  }, req.user._id);
+
+  // Handle specific notifications based on what changed
+  
+  // If status changed, emit specific status change event
+  // if (status !== undefined && status !== oldStatus) {
+  //   await emitToProjectMembers(io, project._id, 'taskStatusChanged', {
+  //     taskId: task._id,
+  //     status: status,
+  //     oldStatus: oldStatus,
+  //     updatedBy: {
+  //       id: req.user._id,
+  //       username: req.user.username
+  //     },
+  //     timestamp: new Date()
+  //   }, req.user._id);
+  // }
+
+  // // If assignee changed, notify relevant users
+  // if (assignee !== undefined && assignee !== oldAssignee?.toString()) {
+  //   // Notify new assignee
+  //   if (assignee && assignee !== req.user._id.toString()) {
+  //     emitToUser(io, assignee, 'taskAssignedToYou', {
+  //       task,
+  //       assignedBy: {
+  //         id: req.user._id,
+  //         username: req.user.username
+  //       },
+  //       timestamp: new Date()
+  //     });
+  //   }
+
+  //   // Notify old assignee that task was unassigned from them
+  //   if (oldAssignee && oldAssignee.toString() !== req.user._id.toString()) {
+  //     emitToUser(io, oldAssignee.toString(), 'taskUnassignedFromYou', {
+  //       task,
+  //       unassignedBy: {
+  //         id: req.user._id,
+  //         username: req.user.username
+  //       },
+  //       timestamp: new Date()
+  //     });
+  //   }
+  // }
 
   res.json(task);
 });
@@ -129,7 +214,17 @@ const remove = catchAsync(async (req, res) => {
 
   await Task.findByIdAndDelete(req.params.id);
 
-  // req.app.get('io').to(`project_${project._id}`).emit('taskDeleted', { taskId: task._id });
+  // Emit task deletion to all project members except the deleter
+  const io = req.app.get('io');
+  await emitToProjectMembers(io, project._id, 'taskDeleted', {
+    taskId: task._id,
+    taskTitle: task.title,
+    deletedBy: {
+      id: req.user._id,
+      username: req.user.username
+    },
+    timestamp: new Date()
+  }, req.user._id);
 
   res.json({ message: 'Task deleted successfully' });
 });
@@ -163,8 +258,20 @@ const upload = catchAsync(async (req, res) => {
 
   task.attachments.push(attachment);
   await task.save();
+  await task.populate('assignee', 'username email');
+  await task.populate('createdBy', 'username email');
 
-  // req.app.get('io').to(`project_${project._id}`).emit('taskUpdated', task);
+  // Emit file upload notification to project members except uploader
+  const io = req.app.get('io');
+  await emitToProjectMembers(io, project._id, 'taskFileUploaded', {
+    task,
+    attachment,
+    uploadedBy: {
+      id: req.user._id,
+      username: req.user.username
+    },
+    timestamp: new Date()
+  }, req.user._id);
 
   res.json({ message: 'File uploaded successfully', attachment });
 });
