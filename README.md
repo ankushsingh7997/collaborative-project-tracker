@@ -1,27 +1,27 @@
-# collaborative-project-tracker
-Collaborative Project Tracker - System Architecture
-Tech Stack
+# 📌 Collaborative Project Tracker - Backend
 
-Frontend: Next.js 14+ (JavaScript, React)
-Backend: Node.js with Express.js (JavaScript)
-Database: MongoDB with Mongoose ODM
-Authentication: JWT-based authentication
-Real-time: Socket.io for WebSocket connections
-File Upload: Multer for handling file attachments
-Deployment: Vercel (Frontend) + Railway/Render (Backend)
+A **real-time collaborative project management system** with authentication, project & task management, file uploads, and live updates via WebSockets.
 
-System Architecture
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Next.js App   │    │  Express.js API │    │   MongoDB       │
-│                 │    │                 │    │                 │
-│ - Pages/Routes  │◄──►│ - REST API      │◄──►│ - Users         │
-│ - Components    │    │ - Socket.io     │    │ - Projects      │
-│ - State Mgmt    │    │ - Middleware    │    │ - Tasks         │
-│ - Socket Client │    │ - Controllers   │    │ - Comments      │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-Database Schema
-Users Collection
-javascript{
+---
+
+## 🏗️ System Architecture
+
+### **Tech Stack**
+- **Frontend**: Next.js 14+ (JavaScript, React)  
+- **Backend**: Node.js with Express.js (JavaScript)  
+- **Database**: MongoDB with Mongoose ODM  
+- **Authentication**: JWT-based authentication  
+- **Real-time**: Socket.io for WebSocket connections  
+- **File Upload**: Multer for handling file attachments  
+- **Deployment**: Vercel (Frontend) + Railway/Render (Backend)  
+
+---
+
+## 🗄️ Database Schema
+
+### **Users Collection**
+```javascript
+{
   _id: ObjectId,
   username: String,
   email: String,
@@ -30,8 +30,11 @@ javascript{
   createdAt: Date,
   updatedAt: Date
 }
-Projects Collection
-javascript{
+```
+
+### **Project Collection**
+```javascript
+{
   _id: ObjectId,
   name: String,
   description: String,
@@ -42,8 +45,10 @@ javascript{
   createdAt: Date,
   updatedAt: Date
 }
-Tasks Collection
-javascript{
+```
+### **Task Collection**
+```javascript
+{
   _id: ObjectId,
   title: String,
   description: String,
@@ -61,8 +66,11 @@ javascript{
   createdAt: Date,
   updatedAt: Date
 }
-Comments Collection
-javascript{
+```
+
+### **Comment Collection**
+```javascript
+{
   _id: ObjectId,
   content: String,
   author: ObjectId (ref: User),
@@ -70,70 +78,81 @@ javascript{
   createdAt: Date,
   updatedAt: Date
 }
-API Endpoints
-Authentication
+```
 
-POST /api/auth/register - User registration
-POST /api/auth/login - User login
-GET /api/auth/me - Get current user info
+## 🔗 API Endpoints
 
-Projects
+### 🟢 Authentication
+- **POST** `/api/auth/register` → User registration  
+- **POST** `/api/auth/login` → User login  
+- **GET** `/api/auth/me` → Get current user info  
 
-GET /api/projects - Get user's projects
-POST /api/projects - Create new project
-GET /api/projects/:id - Get project details
-PUT /api/projects/:id - Update project (owner only)
-DELETE /api/projects/:id - Delete project (owner only)
-POST /api/projects/join - Join project via invite code
+### 📁 Projects
+- **GET** `/api/projects` → Get user's projects  
+- **POST** `/api/projects` → Create new project  
+- **GET** `/api/projects/:id` → Get project details  
+- **PUT** `/api/projects/:id` → Update project (owner only)  
+- **DELETE** `/api/projects/:id` → Delete project (owner only)  
+- **POST** `/api/projects/join` → Join project via invite code  
 
-Tasks
+### ✅ Tasks
+- **GET** `/api/projects/:projectId/tasks` → Get project tasks  
+- **POST** `/api/projects/:projectId/tasks` → Create new task  
+- **PUT** `/api/tasks/:id` → Update task  
+- **DELETE** `/api/tasks/:id` → Delete task  
+- **POST** `/api/tasks/:id/upload` → Upload task attachment  
 
-GET /api/projects/:projectId/tasks - Get project tasks
-POST /api/projects/:projectId/tasks - Create new task
-PUT /api/tasks/:id - Update task
-DELETE /api/tasks/:id - Delete task
-POST /api/tasks/:id/upload - Upload task attachment
+### 💬 Comments
+- **GET** `/api/tasks/:taskId/comments` → Get task comments  
+- **POST** `/api/tasks/:taskId/comments` → Create comment  
+- **PUT** `/api/comments/:id` → Update comment (author only)  
+- **DELETE** `/api/comments/:id` → Delete comment (author/owner only)  
+## 🔗 API Endpoints
 
-Comments
+### 🟢 Authentication
+- **POST** `/api/auth/register` → User registration  
+- **POST** `/api/auth/login` → User login  
+- **GET** `/api/auth/me` → Get current user info  
 
-GET /api/tasks/:taskId/comments - Get task comments
-POST /api/tasks/:taskId/comments - Create comment
+### 📁 Projects
+- **GET** `/api/projects` → Get user's projects  
+- **POST** `/api/projects` → Create new project  
+- **GET** `/api/projects/:id` → Get project details  
+- **PUT** `/api/projects/:id` → Update project (owner only)  
+- **DELETE** `/api/projects/:id` → Delete project (owner only)  
+- **POST** `/api/projects/join` → Join project via invite code  
 
-## Folder Structure
-backend/
-├── src/
-│   ├── config/
-│   │   ├── database.js
-│   │   ├── jwt.js
-│   │   └── socket.js
-│   ├── models/
-│   │   ├── User.js
-│   │   ├── Project.js
-│   │   ├── Task.js
-│   │   └── Comment.js
-│   ├── middleware/
-│   │   ├── auth.js
-│   │   ├── validation.js
-│   │   └── upload.js
-│   ├── controllers/
-│   │   ├── authController.js
-│   │   ├── projectController.js
-│   │   ├── taskController.js
-│   │   └── commentController.js
-│   ├── routes/
-│   │   ├── auth.js
-│   │   ├── projects.js
-│   │   ├── tasks.js
-│   │   └── comments.js
-│   ├── utils/
-│   │   ├── helpers.js
-│   │   └── validators.js
-│   └── socket/
-│       └── handlers.js
-├── uploads/              # File storage
-├── package.json
-├── .env.example
-└── server.js
+### ✅ Tasks
+- **GET** `/api/projects/:projectId/tasks` → Get project tasks  
+- **POST** `/api/projects/:projectId/tasks` → Create new task  
+- **PUT** `/api/tasks/:id` → Update task  
+- **DELETE** `/api/tasks/:id` → Delete task  
+- **POST** `/api/tasks/:id/upload` → Upload task attachment  
+
+### 💬 Comments
+- **GET** `/api/tasks/:taskId/comments` → Get task comments  
+- **POST** `/api/tasks/:taskId/comments` → Create comment  
+- **PUT** `/api/comments/:id` → Update comment (author only)  
+- **DELETE** `/api/comments/:id` → Delete comment (author/owner only)  
+
+## ⚡ WebSocket Events
+
+### 🟢 Client → Server
+- **joinProject** → Join project room for real-time updates  
+- **leaveProject** → Leave project room  
+- **taskStatusUpdate** → Notify task status change  
+- **typingComment** → User is typing a comment  
+- **stopTypingComment** → User stopped typing  
+
+### 🔵 Server → Client
+- **taskCreated** → New task created  
+- **taskUpdated** → Task updated  
+- **taskDeleted** → Task deleted  
+- **commentCreated** → New comment added  
+- **commentUpdated** → Comment updated  
+- **commentDeleted** → Comment deleted  
+- **userTyping** → User is typing  
+- **userStoppedTyping** → User stopped typing  
 
 
 ## Setup Instructions
