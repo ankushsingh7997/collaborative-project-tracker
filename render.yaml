@@ -11,21 +11,21 @@ services:
     healthCheckPath: /api/v1/healthCheck
     envVars:
       - key: SERVICE_NAME
-        value: TESTING
+        value: "TESTING"
       - key: NODE_ENV
-        value: production
+        value: "production"
       - key: PORT
         value: "3001"
       - key: ID
         value: "1"
       - key: BROKER_REDIS_NAME
-        value: project-tracker
+        value: "project-tracker"
       - key: BROKER_REDIS_HOST_URL
-        value: localhost
+        value: "localhost"
       - key: BROKER_REDIS_PORT
         value: "6379"
       - key: BROKER_REDIS_PASSWORD
-        value: NONE
+        value: "NONE"
       - key: BROKER_REDIS_PUBLISHER
         value: "0"
       - key: BROKER_REDIS_SUBSCRIBER
@@ -33,17 +33,17 @@ services:
       - key: BROKER_REDIS_CACHE
         value: "1"
       - key: BROKER_REDIS_SUB_TOPICS
-        value: NONE
+        value: "NONE"
       - key: LOG_DB_URI
         value: "your-log-db-connection-string"
       - key: LOG_DB_NAME
-        value: ANKUSH
+        value: "ANKUSH"
       - key: DB_URL
         fromSecret: "your-database-connection-string"
       - key: ENCRYPTION_SECRET_KEY
         value: "your-encryption-key"
       - key: ENCRYPTION_METHOD
-        value: AES-256-CBC
+        value: "AES-256-CBC"
       - key: JWT_SECRET
         value: "your-jwt-secret"
       - key: JWT_EXPIRY_DAYS
