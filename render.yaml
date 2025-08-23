@@ -39,7 +39,8 @@ services:
       - key: LOG_DB_NAME
         value: "ANKUSH"
       - key: DB_URL
-        value: "your-database-connection-string"
+        value: 
+          - fromSecret: DB_URL
       - key: ENCRYPTION_SECRET_KEY
         value: "your-encryption-key"
       - key: ENCRYPTION_METHOD
