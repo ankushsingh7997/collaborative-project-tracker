@@ -40,7 +40,8 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors());
-
+socketHandlers(io);
+app.set("io",io) 
 
 app.use(hpp());
 app.use(xss());
@@ -97,8 +98,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/comments', commentRoutes);
-socketHandlers(io);
-app.set("io",io)
 
 // Handle 404 for API routes
 app.use( (req, res, next) => {
