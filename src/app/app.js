@@ -45,8 +45,7 @@ app.use(cors());
 app.use(hpp());
 app.use(xss());
 
-socketHandlers(io);
-app.set("io",io)
+
 
 // Content Security Policy
 app.use(
@@ -98,6 +97,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/comments', commentRoutes);
+socketHandlers(io);
+app.set("io",io)
 
 // Handle 404 for API routes
 app.use( (req, res, next) => {
