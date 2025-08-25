@@ -45,6 +45,9 @@ app.use(cors());
 app.use(hpp());
 app.use(xss());
 
+socketHandlers(io);
+app.set("io",io)
+
 // Content Security Policy
 app.use(
     helmet.contentSecurityPolicy({
